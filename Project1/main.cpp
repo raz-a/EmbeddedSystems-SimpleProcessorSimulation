@@ -15,7 +15,19 @@ void main()
 	std::ifstream * reg = new std::ifstream("registers.txt");
 	std::ifstream * dmem = new std::ifstream("datamemory.txt");
 
+	std::ofstream * output = new std::ofstream("simulation.txt");
+
 	Processor * p = new Processor(imem, reg, dmem);
+	int i = 0;
+
+	while (!p->IsSteadyState())
+	{
+		*output << "Step " << i++ << ":" << endl << *p << endl << endl;
+		p->NextClock();
+	}
+
+	// Last Step
+	*output << "Step " << i << ":" << endl << *p << endl << endl;
 
 	int x = 7;
 
@@ -23,4 +35,5 @@ void main()
 	delete reg;
 	delete dmem;
 	delete p;
+	delete output;
 }

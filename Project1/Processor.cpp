@@ -75,17 +75,138 @@ namespace Project1
 
 		datamemory->close();
 
-		determineSteadyState();
+		// Create resultBuffer
+		this->ResultBuffer = deque<Result>();
 	}
 
 	void Processor::NextClock()
 	{
+		// Result Buffer -> Register File
+
+		if (this->ResultBuffer.size())
+		{
+			Result tempR = this->ResultBuffer.front();
+			this->ResultBuffer.pop_front();
+			this->RegisterFile[tempR.reg] = make_tuple(true, tempR.value);
+		}
+		
+		// Partial Result Buffer -> Result Buffer
+		if (this->PartialResultBuffer != EMPTY_INSTRUCTION)
+		{
+			this->ResultBuffer.push_back(Result{
+				this->PartialResultBuffer.reg,
+				(unsigned char)(this->PartialResultBuffer.operand[0] * this->PartialResultBuffer.operand[1])
+			});
+		}
+
+		// Arithmetic Instruction Buffer -> Partial Result Buffer/Result Buffer
+		this->PartialResultBuffer = EMPTY_INSTRUCTION;
+
+		switch (this->ArithInstructionBuffer.op)
+		{
+			case (MUL) :
+				this->PartialResultBuffer = this->ArithInstructionBuffer;
+				break;
+			case (ADD) :
+				this->ResultBuffer.push_back(Result{
+					this->ArithInstructionBuffer.reg,
+					(unsigned char)(this->ArithInstructionBuffer.operand[0] + this->ArithInstructionBuffer.operand[1])
+				});
+				break;
+			case (SUB) :
+				this->ResultBuffer.push_back(Result{
+					this->ArithInstructionBuffer.reg,
+					(unsigned char)(this->ArithInstructionBuffer.operand[0] - this->ArithInstructionBuffer.operand[1])
+				});
+				break;
+		}
+
+		// Address Buffer -> Data Memory
+		if (this->AddressBuffer != EMPTY_RESULT)
+		{
+			this->DataMem[this->AddressBuffer.value] = make_tuple(true, get<1>(this->RegisterFile[this->AddressBuffer.reg]));
+		}
+
+		// Store Instruction Buffer -> Address Buffer
+		this->AddressBuffer = EMPTY_RESULT;
+
+		if (this->StoreInstructionBuffer != EMPTY_INSTRUCTION)
+		{
+			this->AddressBuffer = Result{
+				this->StoreInstructionBuffer.reg,
+				(unsigned char)(this->StoreInstructionBuffer.operand[0] + this->StoreInstructionBuffer.operand[1])
+			};
+		}
+
+		// Instruction Buffer -> Arithmetic Instruction Buffer/Store Instruction Buffer
+		this->ArithInstructionBuffer = EMPTY_INSTRUCTION;
+		this->StoreInstructionBuffer = EMPTY_INSTRUCTION;
+
+		if (this->InstructionBuffer != EMPTY_INSTRUCTION)
+		{
+			if (this->InstructionBuffer.op == ST)
+			{
+				this->StoreInstructionBuffer = this->InstructionBuffer;
+			}
+			else
+			{
+				this->ArithInstructionBuffer = this->InstructionBuffer;
+			}
+		}
+
+		// Instruction Memory to Instruction Buffer
+		this->InstructionBuffer = EMPTY_INSTRUCTION;
+
+		if (this->InstructionMem.size() != 0)
+		{
+			string s = this->InstructionMem.front();
+			this->InstructionMem.pop_front();
+			this->InstructionBuffer = this->processInstruction(s);
+		}
 
 	}
 
-	void Processor::determineSteadyState()
+	bool Processor::IsSteadyState()
 	{
+		if (this->InstructionMem.size() > 0)
+		{
+			return false;
+		}
 
+		if (this->InstructionBuffer != EMPTY_INSTRUCTION)
+		{
+			return false;
+		}
+
+		if (this->ArithInstructionBuffer != EMPTY_INSTRUCTION)
+		{
+			return false;
+		}
+
+		if (this->StoreInstructionBuffer != EMPTY_INSTRUCTION)
+		{
+			return false;
+		}
+
+		if (this->PartialResultBuffer != EMPTY_INSTRUCTION)
+		{
+			return false;
+		}
+
+		if (this->AddressBuffer != EMPTY_RESULT)
+		{
+			return false;
+		}
+
+		for (unsigned int i = 0; i < ResultBuffer.size(); i++)
+		{
+			if (this->ResultBuffer[i] != EMPTY_RESULT)
+			{
+				return false;
+			}
+		}
+		
+		return true;
 	}
 
 	Instruction Processor::processInstruction(string inst)
@@ -145,6 +266,95 @@ namespace Project1
 
 	ostream & operator<<(ostream & os, const Processor & p)
 	{
+		os << "INM:";
+
+		for (unsigned int i = 0; i < p.InstructionMem.size(); i++)
+		{
+			if (i != 0)
+			{
+				os << ",";
+			}
+
+			os << p.InstructionMem[i];
+		}
+
+		os << endl << "INB:";
+
+		if ((Instruction)p.InstructionBuffer != EMPTY_INSTRUCTION)
+		{
+			os << p.InstructionBuffer;
+		}
+
+		os << endl << "AIB:";
+
+		if ((Instruction)p.ArithInstructionBuffer != EMPTY_INSTRUCTION)
+		{
+			os << p.ArithInstructionBuffer;
+		}
+
+		os << endl << "SIB:";
+
+		if ((Instruction)p.StoreInstructionBuffer != EMPTY_INSTRUCTION)
+		{
+			os << p.StoreInstructionBuffer;
+		}
+
+		os << endl << "PRB:";
+
+		if ((Instruction)p.PartialResultBuffer != EMPTY_INSTRUCTION)
+		{
+			os << p.PartialResultBuffer;
+		}
+
+		os << endl << "ADB:";
+
+		if ((Result)p.AddressBuffer != EMPTY_RESULT)
+		{
+			os << p.AddressBuffer;
+		}
+
+		os << endl << "REB:";
+
+		for (unsigned int i = 0; i < p.ResultBuffer.size(); i++)
+		{
+			if (i != 0)
+			{
+				os << ",";
+			}
+
+			os << p.ResultBuffer[i];
+		}
+
+		os << endl << "RGF:";
+
+		for (int i = 0; i < 16; i++)
+		{
+			if (get<0>(p.RegisterFile[i]))
+			{
+				os << "<R" << i << "," << +get<1>(p.RegisterFile[i]) << ">";
+
+				if (i != 15)
+				{
+					os << ',';
+				}
+			}
+		}
+
+		os << endl << "DAM:";
+
+		for (int i = 0; i < 16; i++)
+		{
+			if (get<0>(p.DataMem[i]))
+			{
+				os << "<" << i << "," << +get<1>(p.DataMem[i]) << ">";
+
+				if (i != 15)
+				{
+					os << ',';
+				}
+			}
+		}
+
 		return os;
 	}
 }

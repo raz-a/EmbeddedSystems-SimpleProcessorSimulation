@@ -26,7 +26,7 @@ namespace Project1
 	class Processor
 	{
 		public:
-			bool SteadyState;
+			bool IsSteadyState();
 			Processor(ifstream *instructions, ifstream *registers, ifstream *datamemory);
 			void NextClock();
 			friend ostream& operator<<(ostream &os, const Processor &p);
@@ -39,9 +39,8 @@ namespace Project1
 			Instruction StoreInstructionBuffer;
 			Instruction PartialResultBuffer;
 			Result AddressBuffer;
-			Result ResultBuffer;
+			deque<Result> ResultBuffer;
 
-			void determineSteadyState();
 			Instruction processInstruction(string inst);
 	};
 }

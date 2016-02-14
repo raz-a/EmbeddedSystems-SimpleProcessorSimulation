@@ -22,6 +22,9 @@ namespace Project1
 
 		Instruction();
 		Instruction(Opcode op, unsigned char reg, unsigned char operandA, unsigned char operandB);
+
+		bool operator==(const Instruction &inst);
+		bool operator!=(const Instruction &inst);
 		friend std::ostream& operator<<(std::ostream &os, const Instruction &inst);
 	};
 

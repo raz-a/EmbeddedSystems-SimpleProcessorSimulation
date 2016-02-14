@@ -20,6 +20,9 @@ namespace Project1
 
 		Result();
 		Result(unsigned char reg, unsigned char value);
+
+		bool operator==(const Result &res);
+		bool operator!=(const Result &res);
 		friend std::ostream& operator<<(std::ostream &os, const Result &res);
 	};
 
