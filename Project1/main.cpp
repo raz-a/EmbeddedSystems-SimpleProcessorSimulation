@@ -4,18 +4,23 @@
 
 #include <iostream>
 #include <string>
-#include "Opcode.h"
-#include "Instruction.h"
+#include <fstream>
+#include "Processor.h"
 
 using namespace Project1;
 
 void main()
 {
-	Instruction i(MUL, 12, 3, 6);
+	std::ifstream * imem = new std::ifstream("instructions.txt");
+	std::ifstream * reg = new std::ifstream("registers.txt");
+	std::ifstream * dmem = new std::ifstream("datamemory.txt");
 
-	std::cout << i;
+	Processor * p = new Processor(imem, reg, dmem);
 
-	int x;
+	int x = 7;
 
-	std::cin >> x;
+	delete imem;
+	delete reg;
+	delete dmem;
+	delete p;
 }

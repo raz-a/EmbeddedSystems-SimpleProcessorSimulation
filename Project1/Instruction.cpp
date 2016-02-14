@@ -2,6 +2,11 @@
 
 namespace Project1
 {
+	Instruction::Instruction()
+	{
+		*this = EMPTY_INSTRUCTION;
+	}
+
 	Instruction::Instruction(Opcode op, unsigned char reg, unsigned char operandA, unsigned char operandB)
 	{
 		this->op = op;

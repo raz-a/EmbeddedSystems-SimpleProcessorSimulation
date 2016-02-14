@@ -120,10 +120,19 @@
   <ItemGroup>
     <ClInclude Include="Instruction.h" />
     <ClInclude Include="Opcode.h" />
+    <ClInclude Include="Processor.h" />
+    <ClInclude Include="Result.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Instruction.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Processor.cpp" />
+    <ClCompile Include="Result.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="datamemory.txt" />
+    <Text Include="instructions.txt" />
+    <Text Include="registers.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -18,7 +18,8 @@ namespace Project1
 		ADD,
 		SUB,
 		MUL,
-		ST
+		ST,
+		NOP
 	};
 
 	const std::string OpCodeNames[] =
@@ -26,7 +27,8 @@ namespace Project1
 		"ADD",
 		"SUB",
 		"MUL",
-		"ST"
+		"ST",
+		"NOP"
 	};
 }
 
