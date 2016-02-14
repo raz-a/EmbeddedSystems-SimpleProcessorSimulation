@@ -29,7 +29,7 @@ void main()
 	// Last Step
 	*output << "Step " << i << ":" << endl << *p << endl << endl;
 
-	int x = 7;
+	output->close();
 
 	delete imem;
 	delete reg;
